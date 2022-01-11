@@ -1,33 +1,46 @@
 {
-    "routes": [
-        {
-            "route": "/admin/*",
-            "allowedRoles": [ "admin" ]
-        },
-        {
-            "route": "/authenticated/*",
-            "allowedRoles": [ "authenticated" ]
-        }
-    ],
     "auth": {
         "rolesSource": "/api/GetRoles",
         "identityProviders": {
             "azureActiveDirectory": {
-                "userDetailsClaim": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+                "enabled": true,
                 "registration": {
-                    "openIdIssuer": "https://login.microsoftonline.com/<YOUR_AAD_TENANT_ID>",
+                    "openIdIssuer": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0",
                     "clientIdSettingName": "AAD_CLIENT_ID",
                     "clientSecretSettingName": "AAD_CLIENT_SECRET"
                 },
                 "login": {
-                    "loginParameters": [
-                        "resource=https://graph.microsoft.com"
-                    ]
+                    "loginParameters": ["resource=https://graph.microsoft.com"]
                 }
             }
         }
     },
-    "globalHeaders": {
-        "Cache-Control": "no-cache"
+    "routes": [
+        {
+            "route": "/login",
+            "rewrite": "/.auth/login/aad"
+        },
+        {
+            "route": "/logout",
+            "redirect": "/.auth/logout"
+        },
+        {
+          "route": "/.auth/login/github",
+          "statusCode": 404
+        },
+        {
+          "route": "/.auth/login/twitter",
+          "statusCode": 404
+        },
+        {
+            "route": "/*",
+            "allowedRoles": ["authenticated", "authorized"]
+        }
+    ],
+    "responseOverrides": {
+        "401": {
+            "redirect": "/login",
+            "statusCode": 302
+        }
     }
 }
